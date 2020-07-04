@@ -325,7 +325,7 @@ function App() {
             Account connected.
           </Text>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.1.3
+            version 0.1.4
           </Text>
         </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
@@ -355,7 +355,7 @@ function App() {
                 Your ASKO staked: {accountStake}
               </Text>
               <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
-                Your dividends: {totalDistributions}
+                Your dividends: {accountDivis}
               </Text>
             </Box>
             <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>

@@ -11,6 +11,8 @@ export default function Footer() {
         <Box width="90vw" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
         <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoToken}>Token SC</Link>
         <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoPresale}>Presale SC</Link>
+        <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoStaking}>Staking SC</Link>
+        <Link color="gray.600" m="5px" display="inline-block" href={"https://app.uniswap.org/#/swap?inputCurrency=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&outputCurrency="+addresses.askoToken}>Uniswap</Link>
         <Link color="gray.600" m="5px" display="inline-block" href="https://github.com/joefilmo/askonetwork-contracts">Github</Link>
         <Link color="gray.600" m="5px" display="inline-block" href="https://t.me/AskobarNetwork">Telegram</Link>
         <Link color="gray.600" m="5px" display="inline-block" href="https://twitter.com/AskobarN">Twitter</Link>
