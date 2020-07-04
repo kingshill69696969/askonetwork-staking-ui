@@ -342,7 +342,7 @@ function App() {
             Account connected.
           </Text>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.1.5
+            version 0.1.5b
           </Text>
         </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
