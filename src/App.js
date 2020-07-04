@@ -113,6 +113,7 @@ function App() {
   const [accountAsko, setAccountAsko] = useState("0")
   const [accountStake, setAccountStake] = useState("0")
   const [accountDivis, setAccountDivis] = useState("0")
+  const [accountApproved, setAccountApproved] = useState("0")
 
   const [askoStakingSC, setAskoStakingSC] = useState(null)
   const [askoTokenSC, setAskoTokenSC] = useState(null)
@@ -190,7 +191,7 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    await askoTokenSC.methods.approve(addresses.askoStaking,"140000000").send({from:address})
+    await askoTokenSC.methods.approve(addresses.askoStaking,web3.utils.toWei("140000000")).send({from:address})
     alert("Approve request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -262,21 +263,27 @@ function App() {
         totalDistributions,
         accountAsko,
         accountStake,
-        accountDivis
+        accountDivis,
+        accountApproved
       ] = await Promise.all([
         askoStakingSC.methods.totalStaked().call(),
         askoStakingSC.methods.totalStakers().call(),
         askoStakingSC.methods.totalDistributions().call(),
         askoTokenSC.methods.balanceOf(address).call(),
         askoStakingSC.methods.stakeValue(address).call(),
-        askoStakingSC.methods.dividendsOf(address).call()
+        askoStakingSC.methods.dividendsOf(address).call(),
+        askoTokenSC.methods.allowance(address,addresses.askoStaking).call()
       ])
+      console.log("address",address)
+      console.log("accountApproved",accountApproved)
+      console.log("addresses.askoStaking",addresses.askoStaking)
       setTotalStaked(web3.utils.fromWei(totalStaked))
-      setTotalStakers(web3.utils.fromWei(totalStakers))
+      setTotalStakers(totalStakers)
       setTotalDistributions(web3.utils.fromWei(totalDistributions))
       setAccountAsko(web3.utils.fromWei(accountAsko))
       setAccountStake(web3.utils.fromWei(accountStake))
-      setAccountDivis(accountDivis)
+      setAccountDivis(web3.utils.fromWei(accountDivis))
+      setAccountApproved(web3.utils.fromWei(accountApproved))
     }
 
     fetchData(web3,address,askoTokenSC,askoStakingSC)
@@ -329,6 +336,9 @@ function App() {
         { isActive ?
           (<>
             <Button color="gray.300" display="block" ml="auto" mr="auto" onClick={handleApprove} bg="red.700" fg="gray.200">Approve First</Button>
+            <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
+              allowance: <Text fontSize="md" color="gray.500" display="inline">{accountApproved}</Text>
+            </Text>
             <StakingButtonGroup web3={web3} cap={accountAsko} setVal={setRequestStakeValue} val={requestStakeValue} handleClick={handleStake} name="Stake" />
             <StakingButtonGroup web3={web3} cap={accountStake} setVal={setRequestUnstakeValue} val={requestUnstakeValue} handleClick={handleUnstake} name="Unstake" />
             <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestWithdrawValue} val={requestWithdrawValue} handleClick={handleWithdraw} name="Withdraw" />
