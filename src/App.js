@@ -200,10 +200,10 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(accountAsko).lt(web3.utils.toBN(requestStakeValue))){
+    if(web3.utils.toBN(web3.utils.toWei(accountAsko)).lt(web3.utils.toBN(requestStakeValue))){
       alert("Your account does not have enough ASKO.")
     }
-    await askoStakingSC.methods.stake(web3.utils.toWei(requestStakeValue.toString())).send({from:address})
+    await askoStakingSC.methods.stake(requestStakeValue.toString()).send({from:address})
     alert("Stake request sent. stake your wallet to see when it has confirmed.")
   }
 
@@ -212,10 +212,10 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(accountStake).lt(web3.utils.toBN(requestUnstakeValue))){
+    if(web3.utils.toBN(web3.utils.toWei(accountStake)).lt(web3.utils.toBN(requestUnstakeValue))){
       alert("Your stake is not that large.")
     }
-    await askoStakingSC.methods.unstake(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
+    await askoStakingSC.methods.unstake(requestUnstakeValue.toString()).send({from:address})
     alert("Unstake request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -224,10 +224,10 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(accountDivis).lt(web3.utils.toBN(requestUnstakeValue))){
+    if(web3.utils.toBN(web3.utils.toWei(accountDivis)).lt(web3.utils.toBN(requestUnstakeValue))){
       alert("Your have not earned enough dividends.")
     }
-    await askoStakingSC.methods.withdraw(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
+    await askoStakingSC.methods.withdraw(requestUnstakeValue.toString()).send({from:address})
     alert("Withdraw request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -236,10 +236,10 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(accountDivis).lt(web3.utils.toBN(requestReinvestValue))){
+    if(web3.utils.toBN(web3.utils.toWei(accountDivis)).lt(web3.utils.toBN(requestReinvestValue))){
       alert("Your have not earned enough dividends.")
     }
-    await askoStakingSC.methods.reinvest(web3.utils.toWei(requestReinvestValue.toString())).send({from:address})
+    await askoStakingSC.methods.reinvest(requestReinvestValue.toString()).send({from:address})
     alert("Reinvest request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -274,9 +274,6 @@ function App() {
         askoStakingSC.methods.dividendsOf(address).call(),
         askoTokenSC.methods.allowance(address,addresses.askoStaking).call()
       ])
-      console.log("address",address)
-      console.log("accountApproved",accountApproved)
-      console.log("addresses.askoStaking",addresses.askoStaking)
       setTotalStaked(web3.utils.fromWei(totalStaked))
       setTotalStakers(totalStakers)
       setTotalDistributions(web3.utils.fromWei(totalDistributions))
@@ -323,11 +320,14 @@ function App() {
       <CSSReset />
       <Box w="100%" minH="100vh" bg="gray.800" color="gray.100" position="relative"  p="20px" pb="160px" >
         <Header web3={web3} address={address} onConnect={onConnect} />
-        { address ? (
+        { address ? (<>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
             Account connected.
           </Text>
-        ) : (
+          <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+            version 0.1.3
+          </Text>
+        </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
             No Ethereum wallet connected.
           </Text>
