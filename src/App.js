@@ -189,7 +189,8 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    askoTokenSC.approve()
+    askoTokenSC.approve(addresses.askoStaking,"140000000")
+    alert("Approve request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleStake = async () => {
@@ -200,7 +201,43 @@ function App() {
     if(web3.utils.toBN(accountAsko).lt(web3.utils.toBN(requestStakeValue))){
       alert("Your account does not have enough ASKO.")
     }
-    await askoStakingSC.methods.deposit(web3.utils.toWei(requestStakeValue.toString)).send({from:address})
+    await askoStakingSC.methods.deposit(web3.utils.toWei(requestStakeValue.toString())).send({from:address})
+    alert("Stake request sent. stake your wallet to see when it has confirmed.")
+  }
+
+  const handleUnstake = async () => {
+    if(!web3 || !address || !askoStakingSC) {
+      alert("You are not connected. Connect and try again.")
+      return
+    }
+    if(web3.utils.toBN(accountStake).lt(web3.utils.toBN(requestUnstakeValue))){
+      alert("Your stake is not that large.")
+    }
+    await askoStakingSC.methods.unstake(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
+    alert("Stake request sent. Check your wallet to see when it has confirmed.")
+  }
+
+  const handleWithdraw = async () => {
+    if(!web3 || !address || !askoStakingSC) {
+      alert("You are not connected. Connect and try again.")
+      return
+    }
+    if(web3.utils.toBN(accountDivis).lt(web3.utils.toBN(requestUnstakeValue))){
+      alert("Your have not earned enough dividends.")
+    }
+    await askoStakingSC.methods.withdraw(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
+    alert("Stake request sent. Check your wallet to see when it has confirmed.")
+  }
+
+  const handleReinvest = async () => {
+    if(!web3 || !address || !askoStakingSC) {
+      alert("You are not connected. Connect and try again.")
+      return
+    }
+    if(web3.utils.toBN(accountDivis).lt(web3.utils.toBN(requestReinvestValue))){
+      alert("Your have not earned enough dividends.")
+    }
+    await askoStakingSC.methods.reinvest(web3.utils.toWei(requestReinvestValue.toString())).send({from:address})
     alert("Stake request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -321,13 +358,28 @@ function App() {
             <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
             <Box m='60px' ml="auto" mr="auto" textAlign="center">
               <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
-                Staking Stats
+                Your Staking Stats
               </Text>
               <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                ASKO staked: {totalStaked}
+                Your ASKO: {accountAsko}
+              </Text>
+              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                Your ASKO staked: {accountStake}
               </Text>
               <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
-                ASKO stakers: {totalStakers}
+                Your dividends: {totalDistributions}
+              </Text>
+            </Box>
+            <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
+            <Box m='60px' ml="auto" mr="auto" textAlign="center">
+              <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
+                Total Staking Stats
+              </Text>
+              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                Total ASKO staked: {totalStaked}
+              </Text>
+              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
+                Total ASKO stakers: {totalStakers}
               </Text>
               <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
                 Total dividends: {totalDistributions}
@@ -335,7 +387,7 @@ function App() {
             </Box>
           </>) :
           (<Box mt="30vh">
-            <Text ml="auto" mr="auto" textAlign="center" fontSize="sm">presale opens in</Text>
+            <Text ml="auto" mr="auto" textAlign="center" fontSize="sm">staking opens in</Text>
             <CountDown expiryTimestamp={time}  />
           </Box>)
         }
