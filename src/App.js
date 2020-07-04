@@ -95,6 +95,11 @@ function App() {
   const [address, setAddress] = useState("")
   const [provider, setProvider] = useState(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
   const [web3, setWeb3] = useState(new Web3(provider))
+
+  const toBN = web3.utils.toBN
+  const toWei = web3.utils.toWei
+  const fromWei = web3.utils.fromWei
+
   const [connected, setConnected] = useState(false)
   const [chainId, setChainId] = useState(1)
   const [networkId, setNetworkId] = useState(1)
@@ -196,50 +201,62 @@ function App() {
   }
 
   const handleStake = async () => {
+    const accountAskoWei = toBN(toWei(accountAsko))
+    const requestStakeValueWei = toBN(toWei(requestStakeValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(web3.utils.toWei(accountAsko)).lt(web3.utils.toBN(requestStakeValue))){
+    if(accountAskoWei.lt(requestStakeValueWei)) {
       alert("Your account does not have enough ASKO.")
+      return
     }
-    await askoStakingSC.methods.stake(requestStakeValue.toString()).send({from:address})
+    await askoStakingSC.methods.stake(requestStakeValueWei).send({from:address})
     alert("Stake request sent. stake your wallet to see when it has confirmed.")
   }
 
   const handleUnstake = async () => {
+    const accountStakeWei = toBN(toWei(accountStake))
+    const requestUnstakeValueWei = toBN(toWei(requestUnstakeValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(web3.utils.toWei(accountStake)).lt(web3.utils.toBN(requestUnstakeValue))){
+    if(accountStakeWei.lt(requestUnstakeValueWei)){
       alert("Your stake is not that large.")
+      return
     }
-    await askoStakingSC.methods.unstake(requestUnstakeValue.toString()).send({from:address})
+    await askoStakingSC.methods.unstake(requestUnstakeValueWei).send({from:address})
     alert("Unstake request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleWithdraw = async () => {
+    const accountDivisWei = toBN(toWei(accountDivis))
+    const requestWithdrawValueWei = toBN(toWei(requestWithdrawValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(web3.utils.toWei(accountDivis)).lt(web3.utils.toBN(requestUnstakeValue))){
+    if(accountDivisWei.lt(requestWithdrawValueWei)){
       alert("Your have not earned enough dividends.")
+      return
     }
-    await askoStakingSC.methods.withdraw(requestUnstakeValue.toString()).send({from:address})
+    await askoStakingSC.methods.withdraw(requestWithdrawValueWei).send({from:address})
     alert("Withdraw request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleReinvest = async () => {
+    const accountDivisWei = toBN(toWei(accountDivis))
+    const requestReinvestValueWei = toBN(toWei(requestReinvestValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(web3.utils.toBN(web3.utils.toWei(accountDivis)).lt(web3.utils.toBN(requestReinvestValue))){
+    if(accountDivisWei.lt(requestReinvestValueWei)){
       alert("Your have not earned enough dividends.")
+      return
     }
-    await askoStakingSC.methods.reinvest(requestReinvestValue.toString()).send({from:address})
+    await askoStakingSC.methods.reinvest(requestReinvestValueWei).send({from:address})
     alert("Reinvest request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -325,7 +342,7 @@ function App() {
             Account connected.
           </Text>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.1.4
+            version 0.1.5
           </Text>
         </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
