@@ -27,6 +27,7 @@ import DcentProvider from "dcent-provider";
 import CountDown from "./components/CountDown"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
+import StakingButtonGroup from "./components/StakingButtonGroup"
 
 
 const INFURA_ID = "f7400d35bb95446ebe055f70cde7ab19"
@@ -189,7 +190,7 @@ function App() {
       alert("You are not connected. Connect and try again.")
       return
     }
-    askoTokenSC.approve(addresses.askoStaking,"140000000")
+    await askoTokenSC.methods.approve(addresses.askoStaking,"140000000").send({from:address})
     alert("Approve request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -201,7 +202,7 @@ function App() {
     if(web3.utils.toBN(accountAsko).lt(web3.utils.toBN(requestStakeValue))){
       alert("Your account does not have enough ASKO.")
     }
-    await askoStakingSC.methods.deposit(web3.utils.toWei(requestStakeValue.toString())).send({from:address})
+    await askoStakingSC.methods.stake(web3.utils.toWei(requestStakeValue.toString())).send({from:address})
     alert("Stake request sent. stake your wallet to see when it has confirmed.")
   }
 
@@ -214,7 +215,7 @@ function App() {
       alert("Your stake is not that large.")
     }
     await askoStakingSC.methods.unstake(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
-    alert("Stake request sent. Check your wallet to see when it has confirmed.")
+    alert("Unstake request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleWithdraw = async () => {
@@ -226,7 +227,7 @@ function App() {
       alert("Your have not earned enough dividends.")
     }
     await askoStakingSC.methods.withdraw(web3.utils.toWei(requestUnstakeValue.toString())).send({from:address})
-    alert("Stake request sent. Check your wallet to see when it has confirmed.")
+    alert("Withdraw request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleReinvest = async () => {
@@ -238,7 +239,7 @@ function App() {
       alert("Your have not earned enough dividends.")
     }
     await askoStakingSC.methods.reinvest(web3.utils.toWei(requestReinvestValue.toString())).send({from:address})
-    alert("Stake request sent. Check your wallet to see when it has confirmed.")
+    alert("Reinvest request sent. Check your wallet to see when it has confirmed.")
   }
 
   useEffect(()=>{
@@ -325,9 +326,13 @@ function App() {
           </Text>
         )}
         <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
-
         { isActive ?
           (<>
+            <Button color="gray.300" display="block" ml="auto" mr="auto" onClick={handleApprove} bg="red.700" fg="gray.200">Approve First</Button>
+            <StakingButtonGroup web3={web3} cap={accountAsko} setVal={setRequestStakeValue} val={requestStakeValue} handleClick={handleStake} name="Stake" />
+            <StakingButtonGroup web3={web3} cap={accountStake} setVal={setRequestUnstakeValue} val={requestUnstakeValue} handleClick={handleUnstake} name="Unstake" />
+            <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestWithdrawValue} val={requestWithdrawValue} handleClick={handleWithdraw} name="Withdraw" />
+            <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestReinvestValue} val={requestReinvestValue} handleClick={handleReinvest} name="Reinvest" />
             <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
             <Box m='60px' ml="auto" mr="auto" textAlign="center">
               <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
