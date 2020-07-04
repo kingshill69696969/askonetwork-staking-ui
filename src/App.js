@@ -244,89 +244,62 @@ function App() {
   useEffect(()=>{
     if(window.web3) onConnect()
   },[])
-/*
+
   useEffect(()=>{
     if(!web3) return
     if(!address) return
 
     const askoTokenSC = new web3.eth.Contract(abis.askoToken, addresses.askoToken)
-    const askoPresaleSC = new web3.eth.Contract(abis.askoPresale, addresses.askoPresale)
+    const askoStakingSC = new web3.eth.Contract(abis.askoStaking, addresses.askoStaking)
     if (!askoTokenSC) return
-    if (!askoPresaleSC) return
+    if (!askoStakingSC) return
 
-    let fetchData = async(web3,address,askoTokenSC,askoPresaleSC)=>{
+    let fetchData = async(web3,address,askoTokenSC,askoStakingSC)=>{
       const [
-        isWhitelisted,
-        accountDeposit,
-        buybackEther,
-        devfundEther,
-        uniswapEther,
-        totalPresaleEtherDeposited,
-        presaleAsko,
-        uniswapAsko,
-        hasSentToUniswap
+        totalStaked,
+        totalStakers,
+        totalDistributions,
+        accountAsko,
+        accountStake,
+        accountDivis
       ] = await Promise.all([
-        askoPresaleSC.methods.whitelist(address).call(),
-        askoPresaleSC.methods.depositAccounts(address).call(),
-        askoPresaleSC.methods.etherPoolBuyback().call(),
-        askoPresaleSC.methods.etherPoolDevfund().call(),
-        askoPresaleSC.methods.etherPoolUniswap().call(),
-        askoPresaleSC.methods.totalPresaleEther().call(),
-        askoPresaleSC.methods.totalPresaleTokens().call(),
-        askoPresaleSC.methods.totalUniswapTokens().call(),
-        askoPresaleSC.methods.hasSentToUniswap().call(),
+        askoStakingSC.methods.totalStaked().call(),
+        askoStakingSC.methods.totalStakers().call(),
+        askoStakingSC.methods.totalDistributions().call(),
+        askoTokenSC.methods.balanceOf(address).call(),
+        askoStakingSC.methods.stakeValue(address).call(),
+        askoStakingSC.methods.dividendsOf(address).call()
       ])
-      setUniswapAsko(web3.utils.fromWei(uniswapAsko))
-      setPresaleAsko(web3.utils.fromWei(presaleAsko))
-      setUniswapEther(web3.utils.fromWei(uniswapEther))
-      setBuybackEther(web3.utils.fromWei(buybackEther))
-      setDevfundEther(web3.utils.fromWei(devfundEther))
-      setTotalPresaleEtherDeposited(totalPresaleEtherDeposited)
-      setAccountDeposit(accountDeposit)
-      setPctSoldOut(
-        Math.floor(
-          web3.utils.fromWei(
-            web3.utils.toBN(totalPresaleEtherDeposited)
-            .mul(web3.utils.toBN(web3.utils.toWei("100")))
-            .div(web3.utils.toBN(web3.utils.toWei("200")))
-          )
-        )
-      )
-      setIsWhitelisted(isWhitelisted)
-
-      if(web3.utils.toWei("200","ether").toString() == totalPresaleEtherDeposited.toString()){
-        //presale ended
-        setIsDepositActive(false)
-        if(!hasSentToUniswap){
-          setIsUniswapSendActive(true)
-        }else{
-          setIsRedeemActive(true)
-        }
-      }
+      setTotalStaked(web3.utils.fromWei(totalStaked))
+      setTotalStakers(web3.utils.fromWei(totalStakers))
+      setTotalDistributions(web3.utils.fromWei(totalDistributions))
+      setAccountAsko(web3.utils.fromWei(accountAsko))
+      setAccountStake(web3.utils.fromWei(accountStake))
+      setAccountDivis(accountDivis)
     }
 
-    fetchData(web3,address,askoTokenSC,askoPresaleSC)
+    fetchData(web3,address,askoTokenSC,askoStakingSC)
 
     let interval;
     if(window.web3){
-      interval = setInterval((web3,address,askoTokenSC,askoPresaleSC)=>{
-        if(!web3 || !address || !askoTokenSC || !askoPresaleSC) return
-        fetchData(web3,address,askoTokenSC,askoPresaleSC)
+      interval = setInterval((web3,address,askoTokenSC,askoStakingSC)=>{
+        if(!web3 || !address || !askoTokenSC || !askoStakingSC) return
+        fetchData(web3,address,askoTokenSC,askoStakingSC)
       },3000)
     }else{
-      interval = setInterval((web3,address,askoTokenSC,askoPresaleSC)=>{
-        if(!web3 || !address || !askoTokenSC || !askoPresaleSC) return
-        fetchData(web3,address,askoTokenSC,askoPresaleSC)
+      interval = setInterval((web3,address,askoTokenSC,askoStakingSC)=>{
+        if(!web3 || !address || !askoTokenSC || !askoStakingSC) return
+        fetchData(web3,address,askoTokenSC,askoStakingSC)
       },7000)
     }
 
     setAskoTokenSC(askoTokenSC)
-    setAskoPresaleSC(askoPresaleSC)
+    setAskoStakingSC(askoStakingSC)
 
     return (interval)=>clearInterval(interval)
 
   },[web3,address])
-*/
+
   useEffect(()=>{
     if(Date.now() < time){
       let interval = setInterval(()=>{
@@ -344,14 +317,14 @@ function App() {
         <Header web3={web3} address={address} onConnect={onConnect} />
         { address ? (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            Account not whitelisted.
+            Account connected.
           </Text>
         ) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            Account not connected.
+            No Ethereum wallet connected.
           </Text>
         )}
-          <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
+        <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
 
         { isActive ?
           (<>
