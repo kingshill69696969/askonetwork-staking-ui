@@ -105,7 +105,11 @@ function App() {
   const [networkId, setNetworkId] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [time, setTime] = useState(Date.UTC(2020,6,4,13,30,0,0))
+  const [rewardPoolRegistrationStart, setRewardPoolRegistrationStart] = useState(Date.UTC(2020,6,10,13,30,0,0))
+  const [rewardPoolStart, setRewardPoolStart] = useState(Date.UTC(2020,6,9,13,30,0,0))
   const [isActive, setIsActive] = useState((Date.now() > time))
+  const [isRewardPoolRegistrationActive, setIsRewardPoolRegistrationActive] = useState((Date.now() > rewardPoolRegistrationStart))
+  const [isRewardPoolActive, setIsRewardPoolActive] = useState((Date.now() > rewardPoolStart))
   const [requestStakeValue, setRequestStakeValue] = useState(0)
   const [requestUnstakeValue, setRequestUnstakeValue] = useState(0)
   const [requestWithdrawValue, setRequestWithdrawValue] = useState(0)
@@ -115,13 +119,17 @@ function App() {
   const [totalStakers, setTotalStakers] = useState("0")
   const [totalDistributions, setTotalDistributions] = useState("0")
 
+
   const [accountAsko, setAccountAsko] = useState("0")
   const [accountStake, setAccountStake] = useState("0")
   const [accountDivis, setAccountDivis] = useState("0")
   const [accountApproved, setAccountApproved] = useState("0")
+  const [accountIsRegistered, setAccountIsRegistered] = useState(false)
 
   const [askoStakingSC, setAskoStakingSC] = useState(null)
   const [askoTokenSC, setAskoTokenSC] = useState(null)
+  const [askoStakingRewardPoolSC, setAskoStakingRewardPoolSC] = useState(null)
+
 
   const initWeb3 = async (provider) => {
     const web3 = new Web3(provider);
@@ -230,6 +238,10 @@ function App() {
     alert("Unstake request sent. Check your wallet to see when it has confirmed.")
   }
 
+  const handleRewardPoolRegistration = async () => {
+    await askoStakingRewardPoolSC.methods.register().send({from:address})
+  }
+
   const handleWithdraw = async () => {
     const accountDivisWei = toBN(toWei(accountDivis))
     const requestWithdrawValueWei = toBN(toWei(requestWithdrawValue.toString()))
@@ -270,10 +282,12 @@ function App() {
 
     const askoTokenSC = new web3.eth.Contract(abis.askoToken, addresses.askoToken)
     const askoStakingSC = new web3.eth.Contract(abis.askoStaking, addresses.askoStaking)
+    const askoStakingRewardPoolSC = new web3.eth.Contract(abis.askoStakingRewardPool, addresses.askoStakingRewardPool)
     if (!askoTokenSC) return
     if (!askoStakingSC) return
+    if (!askoStakingRewardPoolSC) return
 
-    let fetchData = async(web3,address,askoTokenSC,askoStakingSC)=>{
+    let fetchData = async(web3,address,askoTokenSC,askoStakingSC,askoStakingRewardPoolSC)=>{
       const [
         totalStaked,
         totalStakers,
@@ -281,7 +295,8 @@ function App() {
         accountAsko,
         accountStake,
         accountDivis,
-        accountApproved
+        accountApproved,
+        accountIsRegistered
       ] = await Promise.all([
         askoStakingSC.methods.totalStaked().call(),
         askoStakingSC.methods.totalStakers().call(),
@@ -289,7 +304,8 @@ function App() {
         askoTokenSC.methods.balanceOf(address).call(),
         askoStakingSC.methods.stakeValue(address).call(),
         askoStakingSC.methods.dividendsOf(address).call(),
-        askoTokenSC.methods.allowance(address,addresses.askoStaking).call()
+        askoTokenSC.methods.allowance(address,addresses.askoStaking).call(),
+        askoStakingRewardPoolSC.methods.isStakerRegistered(address).call()
       ])
       setTotalStaked(web3.utils.fromWei(totalStaked))
       setTotalStakers(totalStakers)
@@ -298,9 +314,10 @@ function App() {
       setAccountStake(web3.utils.fromWei(accountStake))
       setAccountDivis(web3.utils.fromWei(accountDivis))
       setAccountApproved(web3.utils.fromWei(accountApproved))
+      setAccountIsRegistered(accountIsRegistered)
     }
 
-    fetchData(web3,address,askoTokenSC,askoStakingSC)
+    fetchData(web3,address,askoTokenSC,askoStakingSC,askoStakingRewardPoolSC)
 
     let interval;
     if(window.web3){
@@ -317,6 +334,7 @@ function App() {
 
     setAskoTokenSC(askoTokenSC)
     setAskoStakingSC(askoStakingSC)
+    setAskoStakingRewardPoolSC(askoStakingRewardPoolSC)
 
     return (interval)=>clearInterval(interval)
 
@@ -327,10 +345,27 @@ function App() {
       let interval = setInterval(()=>{
         setIsActive(Date.now() > time)
       },500)
-      return (interval)=>clearInterval(interval)
+      return ()=>clearInterval(interval)
     }
   },[time])
 
+  useEffect(()=>{
+    if(Date.now() < rewardPoolRegistrationStart){
+      let interval = setInterval(()=>{
+        setIsRewardPoolRegistrationActive(Date.now() > rewardPoolRegistrationStart)
+      },500)
+      return ()=>clearInterval(interval)
+    }
+  },[rewardPoolRegistrationStart])
+
+    useEffect(()=>{
+      if(Date.now() < rewardPoolStart){
+        let interval = setInterval(()=>{
+          setIsRewardPoolActive(Date.now() > rewardPoolStart)
+        },500)
+        return ()=>clearInterval(interval)
+      }
+    },[rewardPoolStart])
 
   return (
     <ThemeProvider theme={theme} >
@@ -342,7 +377,7 @@ function App() {
             Account connected.
           </Text>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.1.5b
+            version 0.2.0
           </Text>
         </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
@@ -360,6 +395,29 @@ function App() {
             <StakingButtonGroup web3={web3} cap={accountStake} setVal={setRequestUnstakeValue} val={requestUnstakeValue} handleClick={handleUnstake} name="Unstake" />
             <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestWithdrawValue} val={requestWithdrawValue} handleClick={handleWithdraw} name="Withdraw" />
             <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestReinvestValue} val={requestReinvestValue} handleClick={handleReinvest} name="Reinvest" />
+            <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
+            <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
+              30 Day Staking Bonus Rewards
+            </Text>
+            { isRewardPoolRegistrationActive ? (<>
+              <Button color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolRegistration} bg="green.700" fg="gray.200">Register</Button>
+              <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
+                is registered: {accountIsRegistered ? "Yes" : "No"}
+              </Text>
+              { isRewardPoolActive ? (<>
+
+              </>) : (<>
+                <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">you must register before timer runs out to be eligible for next cycle rewards</Text>
+                <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">first cycle starts in</Text>
+                <CountDown expiryTimestamp={rewardPoolStart}  />
+              </>)
+              }
+            </>):(<>
+
+              <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" mt="20px" color="gray.500">registration opens in</Text>
+              <CountDown expiryTimestamp={rewardPoolRegistrationStart}  />
+            </>)
+            }
             <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
             <Box m='60px' ml="auto" mr="auto" textAlign="center">
               <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
