@@ -1,5 +1,5 @@
 {
-  "name": "askonetwork-presale-ui",
+  "name": "askonetwork-staking-ui",
   "version": "1.0.0",
   "dependencies": {
     "@arkane-network/web3-arkane-provider": "^0.2.5",

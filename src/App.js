@@ -130,6 +130,13 @@ function App() {
   const [askoTokenSC, setAskoTokenSC] = useState(null)
   const [askoStakingRewardPoolSC, setAskoStakingRewardPoolSC] = useState(null)
 
+  const [currentCycle, setCurrentCycle] = useState("0")
+  const [currentCycleStakerPoolOwnership, setCurrentCycleStakerPoolOwnership] = useState("0")
+  const [nextCycleStakerPoolOwnership, setNextCycleStakerPoolOwnership] = useState("0")
+  const [currentCyclePoolTotal, setCurrentCyclePoolTotal] = useState("0")
+  const [nextCyclePoolTotal, setNextCyclePoolTotal] = useState("0")
+  const [currentCyclePayout, setCurrentCyclePayout] = useState("0")
+  const [nextCyclePayout, setNextCyclePayout] = useState("0")
 
   const initWeb3 = async (provider) => {
     const web3 = new Web3(provider);
@@ -242,6 +249,10 @@ function App() {
     await askoStakingRewardPoolSC.methods.register().send({from:address})
   }
 
+  const handleRewardPoolClaim = async () => {
+    await askoStakingRewardPoolSC.methods.claim().send(currentCycle,{from:address})
+  }
+
   const handleWithdraw = async () => {
     const accountDivisWei = toBN(toWei(accountDivis))
     const requestWithdrawValueWei = toBN(toWei(requestWithdrawValue.toString()))
@@ -296,7 +307,8 @@ function App() {
         accountStake,
         accountDivis,
         accountApproved,
-        accountIsRegistered
+        accountIsRegistered,
+        currentCycle
       ] = await Promise.all([
         askoStakingSC.methods.totalStaked().call(),
         askoStakingSC.methods.totalStakers().call(),
@@ -305,7 +317,24 @@ function App() {
         askoStakingSC.methods.stakeValue(address).call(),
         askoStakingSC.methods.dividendsOf(address).call(),
         askoTokenSC.methods.allowance(address,addresses.askoStaking).call(),
-        askoStakingRewardPoolSC.methods.isStakerRegistered(address).call()
+        askoStakingRewardPoolSC.methods.isStakerRegistered(address).call(),
+        askoStakingRewardPoolSC.methods.getCurrentCycleCount().call()
+      ])
+      const nextCycle = (Number(currentCycle)+1).toString()
+      const [
+        currentCycleStakerPoolOwnership,
+        nextCycleStakerPoolOwnership,
+        currentCyclePoolTotal,
+        nextCyclePoolTotal,
+        currentCyclePayout,
+        nextCyclePayout
+      ] = await Promise.all([
+        askoStakingRewardPoolSC.methods.cycleStakerPoolOwnership(currentCycle,address).call(),
+        askoStakingRewardPoolSC.methods.cycleStakerPoolOwnership(nextCycle,address).call(),
+        askoStakingRewardPoolSC.methods.cyclePoolTotal(currentCycle).call(),
+        askoStakingRewardPoolSC.methods.cyclePoolTotal(nextCycle).call(),
+        askoStakingRewardPoolSC.methods.calculatePayout(address,currentCycle).call(),
+        askoStakingRewardPoolSC.methods.calculatePayout(address,nextCycle).call()
       ])
       setTotalStaked(web3.utils.fromWei(totalStaked))
       setTotalStakers(totalStakers)
@@ -315,6 +344,14 @@ function App() {
       setAccountDivis(web3.utils.fromWei(accountDivis))
       setAccountApproved(web3.utils.fromWei(accountApproved))
       setAccountIsRegistered(accountIsRegistered)
+      setCurrentCycle(currentCycle)
+
+      setCurrentCycleStakerPoolOwnership(web3.utils.fromWei(currentCycleStakerPoolOwnership))
+      setNextCycleStakerPoolOwnership(web3.utils.fromWei(nextCycleStakerPoolOwnership))
+      setCurrentCyclePoolTotal(web3.utils.fromWei(currentCyclePoolTotal))
+      setNextCyclePoolTotal(web3.utils.fromWei(nextCyclePoolTotal))
+      setCurrentCyclePayout(web3.utils.fromWei(currentCyclePayout))
+      setNextCyclePayout(web3.utils.fromWei(nextCyclePayout))
     }
 
     fetchData(web3,address,askoTokenSC,askoStakingSC,askoStakingRewardPoolSC)
@@ -377,7 +414,7 @@ function App() {
             Account connected.
           </Text>
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.2.0
+            version 0.2.2
           </Text>
         </>) : (
           <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
@@ -399,13 +436,40 @@ function App() {
             <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
               30 Day Staking Bonus Rewards
             </Text>
-            { isRewardPoolRegistrationActive ? (<>
+            { true ? (<>
               <Button color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolRegistration} bg="green.700" fg="gray.200">Register</Button>
               <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
                 is registered: {accountIsRegistered ? "Yes" : "No"}
               </Text>
-              { isRewardPoolActive ? (<>
-
+              { true ? (<>
+                <Button isDisabled={true} color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolClaim} bg="green.700" fg="gray.200">Claim</Button>
+                <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
+                  available to claim: 0
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Current Cycle: {currentCycle}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Your Ownership (current): {currentCycleStakerPoolOwnership}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Total Registered (current): {currentCyclePoolTotal}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Your payout (current): {currentCyclePayout}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Next Cycle: {Number(currentCycle)+1}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Your Ownership (next): {nextCycleStakerPoolOwnership}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Total Registered (next): {nextCyclePoolTotal}
+                </Text>
+                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
+                  Projected payout (next): {nextCyclePayout}
+                </Text>
               </>) : (<>
                 <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">you must register before timer runs out to be eligible for next cycle rewards</Text>
                 <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">first cycle starts in</Text>
@@ -413,7 +477,6 @@ function App() {
               </>)
               }
             </>):(<>
-
               <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" mt="20px" color="gray.500">registration opens in</Text>
               <CountDown expiryTimestamp={rewardPoolRegistrationStart}  />
             </>)
