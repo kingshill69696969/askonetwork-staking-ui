@@ -30,7 +30,7 @@ import Header from "./components/Header"
 import StakingButtonGroup from "./components/StakingButtonGroup"
 
 
-const INFURA_ID = "f7400d35bb95446ebe055f70cde7ab19"
+const INFURA_ID = "82014a99110c48dabeb8e2d5489599e5"
 
 const providerOptions = {
   walletconnect: {
@@ -436,13 +436,13 @@ function App() {
             <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
               30 Day Staking Bonus Rewards
             </Text>
-            { true ? (<>
+            { isRewardPoolRegistrationActive ? (<>
               <Button color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolRegistration} bg="green.700" fg="gray.200">Register</Button>
               <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
                 is registered: {accountIsRegistered ? "Yes" : "No"}
               </Text>
-              { true ? (<>
-                <Button isDisabled={true} color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolClaim} bg="green.700" fg="gray.200">Claim</Button>
+              { isRewardPoolActive ? (<>
+                <Button isDisabled={true} color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolClaim} bg="blue.700" fg="gray.200">Claim</Button>
                 <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
                   available to claim: 0
                 </Text>
