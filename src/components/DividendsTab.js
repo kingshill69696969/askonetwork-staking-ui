@@ -18,7 +18,7 @@ export default function DividendsTab({accountDividends,handleWithdraw,handleRein
         border="none" borderRadius="32px" w={{base:"200px",sm:"430px"}} h="65px"
         mt={{base:"20px",sm:"45px"}} mb={{base:"10px",sm:"20px"}}
         fontWeight="regular" fontSize={{base:"18px",sm:"24px"}}
-        onClick={handleWithdraw} >
+        onClick={handleReinvest} >
         Reinvest
       </Button>
       <Button display="block" bg="asko.accentButton" color="white" ml="auto" mr="auto" border="none"
