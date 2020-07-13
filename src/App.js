@@ -417,7 +417,7 @@ function App() {
                 <StakeTab accountAsko={accountAsko} setRequestStakeValue={setRequestStakeValue} requestStakeValue={requestStakeValue} handleStake={handleStake} />
               </TabPanel>
               <TabPanel h="480px">
-                <UnstakeTab accountStake={accountStake} setRequestUnstakeValue={setRequestUnstakeValue} requestUnstakeValue={requestUnstakeValue} handleStake={handleUnstake} />
+                <UnstakeTab accountStake={accountStake} setRequestUnstakeValue={setRequestUnstakeValue} requestUnstakeValue={requestUnstakeValue} handleUnstake={handleUnstake} />
               </TabPanel>
               <TabPanel h="480px">
                 <DividendsTab accountDividends={accountDivis} handleWithdraw={handleWithdraw} handleReinvest={handleReinvest} />
