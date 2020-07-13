@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
 import addresses from "./contracts/addresses";
 import abis from "./contracts/abis";
-import { ThemeProvider, CSSReset, Box, SimpleGrid, Image, Heading, Flex, Text, Link, Button, Tabs, Tab, TabList, TabPanels, TabPanel,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,  } from "@chakra-ui/core"
-import theme from "@chakra-ui/theme"
+import { ThemeProvider, CSSReset, Box, SimpleGrid, Image, Heading, Flex, Text, Button,Tabs, TabList, Tab, TabPanel, TabPanels} from "@chakra-ui/core"
+import theme from "./theme"
 import "./App.css";
 
 import Web3 from "web3";
@@ -28,6 +23,12 @@ import CountDown from "./components/CountDown"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
 import StakingButtonGroup from "./components/StakingButtonGroup"
+import AccountStakingStats from "./components/AccountStakingStats"
+import TotalStakingStats from "./components/TotalStakingStats"
+import StakeTab from "./components/StakeTab"
+import UnstakeTab from "./components/UnstakeTab"
+import DividendsTab from "./components/DividendsTab"
+import StakingBonus from "./components/StakingBonus"
 
 
 const INFURA_ID = "82014a99110c48dabeb8e2d5489599e5"
@@ -74,11 +75,6 @@ const providerOptions = {
   }
 };
 
-function shortenDecimal(decimalString) {
-  decimalString = decimalString.toString()
-  if(!decimalString.includes('.')) return decimalString
-  return decimalString.substring(0,decimalString.indexOf('.'))
-}
 
 console.log(Web3Modal)
 
@@ -104,39 +100,46 @@ function App() {
   const [chainId, setChainId] = useState(1)
   const [networkId, setNetworkId] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [time, setTime] = useState(Date.UTC(2020,6,4,13,30,0,0))
   const [rewardPoolRegistrationStart, setRewardPoolRegistrationStart] = useState(Date.UTC(2020,6,9,13,30,0,0))
   const [rewardPoolStart, setRewardPoolStart] = useState(Date.UTC(2020,6,10,13,30,0,0))
-  const [isActive, setIsActive] = useState((Date.now() > time))
   const [isRewardPoolRegistrationActive, setIsRewardPoolRegistrationActive] = useState((Date.now() > rewardPoolRegistrationStart))
   const [isRewardPoolActive, setIsRewardPoolActive] = useState((Date.now() > rewardPoolStart))
-  const [requestStakeValue, setRequestStakeValue] = useState(0)
-  const [requestUnstakeValue, setRequestUnstakeValue] = useState(0)
-  const [requestWithdrawValue, setRequestWithdrawValue] = useState(0)
-  const [requestReinvestValue, setRequestReinvestValue] = useState(0)
+  const [requestStakeValue, setRequestStakeValue] = useState("")
+  const [requestUnstakeValue, setRequestUnstakeValue] = useState("")
+  const [requestWithdrawValue, setRequestWithdrawValue] = useState("")
+  const [requestReinvestValue, setRequestReinvestValue] = useState("")
 
-  const [totalStaked, setTotalStaked] = useState("0")
-  const [totalStakers, setTotalStakers] = useState("0")
-  const [totalDistributions, setTotalDistributions] = useState("0")
+  const [totalStaked, setTotalStaked] = useState("")
+  const [totalStakers, setTotalStakers] = useState("")
+  const [totalDistributions, setTotalDistributions] = useState("")
+  const [totalAsko, setTotalAsko] = useState("")
 
 
-  const [accountAsko, setAccountAsko] = useState("0")
-  const [accountStake, setAccountStake] = useState("0")
-  const [accountDivis, setAccountDivis] = useState("0")
-  const [accountApproved, setAccountApproved] = useState("0")
+  const [accountAsko, setAccountAsko] = useState("")
+  const [accountStake, setAccountStake] = useState("")
+  const [accountDivis, setAccountDivis] = useState("")
+  const [accountApproved, setAccountApproved] = useState("")
   const [accountIsRegistered, setAccountIsRegistered] = useState(false)
+
+
 
   const [askoStakingSC, setAskoStakingSC] = useState(null)
   const [askoTokenSC, setAskoTokenSC] = useState(null)
   const [askoStakingRewardPoolSC, setAskoStakingRewardPoolSC] = useState(null)
 
   const [currentCycle, setCurrentCycle] = useState("0")
-  const [currentCycleStakerPoolOwnership, setCurrentCycleStakerPoolOwnership] = useState("0")
-  const [nextCycleStakerPoolOwnership, setNextCycleStakerPoolOwnership] = useState("0")
-  const [currentCyclePoolTotal, setCurrentCyclePoolTotal] = useState("0")
-  const [nextCyclePoolTotal, setNextCyclePoolTotal] = useState("0")
-  const [currentCyclePayout, setCurrentCyclePayout] = useState("0")
-  const [nextCyclePayout, setNextCyclePayout] = useState("0")
+
+  const [previousCycleStakerPoolOwnership, setPreviousCycleStakerPoolOwnership] = useState("")
+  const [currentCycleStakerPoolOwnership, setCurrentCycleStakerPoolOwnership] = useState("")
+  const [nextCycleStakerPoolOwnership, setNextCycleStakerPoolOwnership] = useState("")
+
+  const [previousCyclePoolTotal, setPreviousCyclePoolTotal] = useState("")
+  const [currentCyclePoolTotal, setCurrentCyclePoolTotal] = useState("")
+  const [nextCyclePoolTotal, setNextCyclePoolTotal] = useState("")
+
+  const [previousCyclePayout, setPreviousCyclePayout] = useState("")
+  const [currentCyclePayout, setCurrentCyclePayout] = useState("")
+  const [nextCyclePayout, setNextCyclePayout] = useState("")
 
   const initWeb3 = async (provider) => {
     const web3 = new Web3(provider);
@@ -255,31 +258,21 @@ function App() {
 
   const handleWithdraw = async () => {
     const accountDivisWei = toBN(toWei(accountDivis))
-    const requestWithdrawValueWei = toBN(toWei(requestWithdrawValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(accountDivisWei.lt(requestWithdrawValueWei)){
-      alert("Your have not earned enough dividends.")
-      return
-    }
-    await askoStakingSC.methods.withdraw(requestWithdrawValueWei).send({from:address})
+    await askoStakingSC.methods.withdraw(accountDivisWei).send({from:address})
     alert("Withdraw request sent. Check your wallet to see when it has confirmed.")
   }
 
   const handleReinvest = async () => {
     const accountDivisWei = toBN(toWei(accountDivis))
-    const requestReinvestValueWei = toBN(toWei(requestReinvestValue.toString()))
     if(!web3 || !address || !askoStakingSC) {
       alert("You are not connected. Connect and try again.")
       return
     }
-    if(accountDivisWei.lt(requestReinvestValueWei)){
-      alert("Your have not earned enough dividends.")
-      return
-    }
-    await askoStakingSC.methods.reinvest(requestReinvestValueWei).send({from:address})
+    await askoStakingSC.methods.reinvest(accountDivisWei).send({from:address})
     alert("Reinvest request sent. Check your wallet to see when it has confirmed.")
   }
 
@@ -308,7 +301,8 @@ function App() {
         accountDivis,
         accountApproved,
         accountIsRegistered,
-        currentCycle
+        currentCycle,
+        totalAsko
       ] = await Promise.all([
         askoStakingSC.methods.totalStaked().call(),
         askoStakingSC.methods.totalStakers().call(),
@@ -318,21 +312,29 @@ function App() {
         askoStakingSC.methods.dividendsOf(address).call(),
         askoTokenSC.methods.allowance(address,addresses.askoStaking).call(),
         askoStakingRewardPoolSC.methods.isStakerRegistered(address).call(),
-        askoStakingRewardPoolSC.methods.getCurrentCycleCount().call()
+        askoStakingRewardPoolSC.methods.getCurrentCycleCount().call(),
+        askoTokenSC.methods.totalSupply().call()
       ])
       const nextCycle = (Number(currentCycle)+1).toString()
+      const previousCycle = (Number(currentCycle)-1).toString()
       const [
+        previousCycleStakerPoolOwnership,
         currentCycleStakerPoolOwnership,
         nextCycleStakerPoolOwnership,
+        previousCyclePoolTotal,
         currentCyclePoolTotal,
         nextCyclePoolTotal,
+        previousCyclePayout,
         currentCyclePayout,
         nextCyclePayout
       ] = await Promise.all([
+        askoStakingRewardPoolSC.methods.cycleStakerPoolOwnership(previousCycle,address).call(),
         askoStakingRewardPoolSC.methods.cycleStakerPoolOwnership(currentCycle,address).call(),
         askoStakingRewardPoolSC.methods.cycleStakerPoolOwnership(nextCycle,address).call(),
+        askoStakingRewardPoolSC.methods.cyclePoolTotal(previousCycle).call(),
         askoStakingRewardPoolSC.methods.cyclePoolTotal(currentCycle).call(),
         askoStakingRewardPoolSC.methods.cyclePoolTotal(nextCycle).call(),
+        askoStakingRewardPoolSC.methods.calculatePayout(address,previousCycle).call(),
         askoStakingRewardPoolSC.methods.calculatePayout(address,currentCycle).call(),
         askoStakingRewardPoolSC.methods.calculatePayout(address,nextCycle).call()
       ])
@@ -345,11 +347,20 @@ function App() {
       setAccountApproved(web3.utils.fromWei(accountApproved))
       setAccountIsRegistered(accountIsRegistered)
       setCurrentCycle(currentCycle)
+      setTotalAsko(totalAsko)
 
+      setRequestWithdrawValue(accountDivis)
+      setRequestReinvestValue(accountDivis)
+
+      setPreviousCycleStakerPoolOwnership(web3.utils.fromWei(previousCycleStakerPoolOwnership))
       setCurrentCycleStakerPoolOwnership(web3.utils.fromWei(currentCycleStakerPoolOwnership))
       setNextCycleStakerPoolOwnership(web3.utils.fromWei(nextCycleStakerPoolOwnership))
+
+      setPreviousCyclePoolTotal(web3.utils.fromWei(previousCyclePoolTotal))
       setCurrentCyclePoolTotal(web3.utils.fromWei(currentCyclePoolTotal))
       setNextCyclePoolTotal(web3.utils.fromWei(nextCyclePoolTotal))
+
+      setPreviousCyclePayout(web3.utils.fromWei(previousCyclePayout))
       setCurrentCyclePayout(web3.utils.fromWei(currentCyclePayout))
       setNextCyclePayout(web3.utils.fromWei(nextCyclePayout))
     }
@@ -373,150 +384,55 @@ function App() {
     setAskoStakingSC(askoStakingSC)
     setAskoStakingRewardPoolSC(askoStakingRewardPoolSC)
 
-    return (interval)=>clearInterval(interval)
+    return ()=>clearInterval(interval)
 
   },[web3,address])
-
-  useEffect(()=>{
-    if(Date.now() < time){
-      let interval = setInterval(()=>{
-        setIsActive(Date.now() > time)
-      },500)
-      return ()=>clearInterval(interval)
-    }
-  },[time])
-
-  useEffect(()=>{
-    if(Date.now() < rewardPoolRegistrationStart){
-      let interval = setInterval(()=>{
-        setIsRewardPoolRegistrationActive(Date.now() > rewardPoolRegistrationStart)
-      },500)
-      return ()=>clearInterval(interval)
-    }
-  },[rewardPoolRegistrationStart])
-
-    useEffect(()=>{
-      if(Date.now() < rewardPoolStart){
-        let interval = setInterval(()=>{
-          setIsRewardPoolActive(Date.now() > rewardPoolStart)
-        },500)
-        return ()=>clearInterval(interval)
-      }
-    },[rewardPoolStart])
 
   return (
     <ThemeProvider theme={theme} >
       <CSSReset />
-      <Box w="100%" minH="100vh" bg="gray.800" color="gray.100" position="relative"  p="20px" pb="160px" >
-        <Header web3={web3} address={address} onConnect={onConnect} />
-        { address ? (<>
-          <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            Account connected.
-          </Text>
-          <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            version 0.2.2
-          </Text>
-        </>) : (
-          <Text mb="40px" mt="40px" color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-            No Ethereum wallet connected.
-          </Text>
-        )}
-        <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
-        { isActive ?
-          (<>
-            <Button color="gray.300" display="block" ml="auto" mr="auto" onClick={handleApprove} bg="red.700" fg="gray.200">Approve First</Button>
-            <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
-              allowance: <Text fontSize="md" color="gray.500" display="inline">{accountApproved}</Text>
-            </Text>
-            <StakingButtonGroup web3={web3} cap={accountAsko} setVal={setRequestStakeValue} val={requestStakeValue} handleClick={handleStake} name="Stake" />
-            <StakingButtonGroup web3={web3} cap={accountStake} setVal={setRequestUnstakeValue} val={requestUnstakeValue} handleClick={handleUnstake} name="Unstake" />
-            <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestWithdrawValue} val={requestWithdrawValue} handleClick={handleWithdraw} name="Withdraw" />
-            <StakingButtonGroup web3={web3} cap={accountDivis} setVal={setRequestReinvestValue} val={requestReinvestValue} handleClick={handleReinvest} name="Reinvest" />
-            <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
-            <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
-              30 Day Staking Bonus Rewards
-            </Text>
-            { isRewardPoolRegistrationActive ? (<>
-              <Button color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolRegistration} bg="green.700" fg="gray.200">Register</Button>
-              <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
-                is registered: {accountIsRegistered ? "Yes" : "No"}
-              </Text>
-              { isRewardPoolActive ? (<>
-                <Button isDisabled={true} color="gray.300" display="block" m="20px" ml="auto" mr="auto" onClick={handleRewardPoolClaim} bg="blue.700" fg="gray.200">Claim</Button>
-                <Text m="10px" color="gray.600"  ml="auto" mr="auto" textAlign="center" fontSize="sm">
-                  available to claim: 0
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Current Cycle: {currentCycle}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Your Ownership (current): {currentCycleStakerPoolOwnership}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Total Registered (current): {currentCyclePoolTotal}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Your payout (current): {currentCyclePayout}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Next Cycle: {Number(currentCycle)+1}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Your Ownership (next): {nextCycleStakerPoolOwnership}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Total Registered (next): {nextCyclePoolTotal}
-                </Text>
-                <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                  Projected payout (next): {nextCyclePayout}
-                </Text>
-              </>) : (<>
-                <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">you must register before timer runs out to be eligible for next cycle rewards</Text>
-                <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" m="20px" color="gray.500">first cycle starts in</Text>
-                <CountDown expiryTimestamp={rewardPoolStart}  />
-              </>)
-              }
-            </>):(<>
-              <Text ml="auto" mr="auto" textAlign="center" fontSize="sm" mt="20px" color="gray.500">registration opens in</Text>
-              <CountDown expiryTimestamp={rewardPoolRegistrationStart}  />
-            </>)
-            }
-            <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
-            <Box m='60px' ml="auto" mr="auto" textAlign="center">
-              <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
-                Your Staking Stats
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                Your ASKO: {accountAsko}
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                Your ASKO staked: {accountStake}
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
-                Your dividends: {accountDivis}
-              </Text>
-            </Box>
-            <Box width="250px" height="1px" bg="gray.700" ml="auto" mr="auto" mt="10px" mb="10px"></Box>
-            <Box m='60px' ml="auto" mr="auto" textAlign="center">
-              <Text color="gray.500" display="block" fontSize="2xl" p="10px" pb="0px" textAlign="center">
-                Total Staking Stats
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px" textAlign="center">
-                Total ASKO staked: {totalStaked}
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
-                Total ASKO stakers: {totalStakers}
-              </Text>
-              <Text color="gray.300" display="block" fontSize="sm" p="10px" pb="0px"  textAlign="center">
-                Total dividends: {totalDistributions}
-              </Text>
-            </Box>
-          </>) :
-          (<Box mt="30vh">
-            <Text ml="auto" mr="auto" textAlign="center" fontSize="sm">staking opens in</Text>
-            <CountDown expiryTimestamp={time}  />
-          </Box>)
-        }
+      <Box w="100%" bg="asko.bg" color="asko.fg" p="20px" pb="160px" >
+        <Box w="100%" maxW="1240px" pl={{base:"5px", sm:"20px"}} pr="20px" ml="auto" mr="auto" position="relative">
+
+          <Header web3={web3} address={address} onConnect={onConnect} />
+
+          <AccountStakingStats accountAsko={accountAsko} accountStake={accountStake} accountDivis={accountDivis} totalStaked={totalStaked} />
+
+          <TotalStakingStats totalStaked={totalStaked} totalStakers={totalStakers} totalDistributions={totalDistributions} totalAsko={totalAsko} />
+
+          <Tabs isFitted w="100%" bg="asko.bgMed2" p={{base:"10px",sm:"40px"}}  borderRadius={{base:"20px",sm:"40px"}}  mt={{base:"20px",sm:"50px"}}  mb={{base:"20px",sm:"50px"}} variant="unstyled">
+            <TabList borderBottom="solid 1px" borderColor="asko.fgMed2">
+              <Tab color="asko.fgMed2" fontSize={{base:"18px",sm:"32px"}} _selected={{color:"asko.fg", border:"none"}} _hover={{color:"asko.fg"}} >
+                Stake
+              </Tab>
+              <Tab color="asko.fgMed2" fontSize={{base:"18px",sm:"32px"}} _selected={{color:"asko.fg", border:"none"}} _hover={{color:"asko.fg"}} >
+                Unstake
+              </Tab>
+              <Tab color="asko.fgMed2" fontSize={{base:"18px",sm:"32px"}} _selected={{color:"asko.fg", border:"none"}} _hover={{color:"asko.fg"}} >
+                Dividends
+              </Tab>
+            </TabList>
+            <TabPanels >
+              <TabPanel h="480px">
+                <StakeTab accountAsko={accountAsko} setRequestStakeValue={setRequestStakeValue} requestStakeValue={requestStakeValue} handleStake={handleStake} />
+              </TabPanel>
+              <TabPanel h="480px">
+                <UnstakeTab accountStake={accountStake} setRequestUnstakeValue={setRequestUnstakeValue} requestUnstakeValue={requestUnstakeValue} handleStake={handleUnstake} />
+              </TabPanel>
+              <TabPanel h="480px">
+                <DividendsTab accountDividends={accountDivis} handleWithdraw={handleWithdraw} handleReinvest={handleReinvest} />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+
+          <StakingBonus
+            previousCycle={Number(currentCycle)-1}  previousCycleOwnership={previousCycleStakerPoolOwnership} previousCycleTotal={previousCyclePoolTotal} previousCyclePayout={previousCyclePayout}
+            currentCycle={Number(currentCycle)} currentCycleOwnership={currentCycleStakerPoolOwnership} currentCycleTotal={currentCyclePoolTotal} currentCyclePayout={currentCyclePayout}
+            nextCycle={Number(currentCycle)+1}  nextCycleOwnership={nextCycleStakerPoolOwnership} nextCycleTotal={nextCyclePoolTotal} nextCyclePayout={nextCyclePayout}
+            handleRewardPoolClaim={handleRewardPoolClaim} handleRewardPoolRegistration={handleRewardPoolRegistration}
+          />
+
+        </Box>
       </Box>
       <Footer />
     </ThemeProvider>
