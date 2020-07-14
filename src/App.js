@@ -347,7 +347,7 @@ function App() {
       setAccountApproved(web3.utils.fromWei(accountApproved))
       setAccountIsRegistered(accountIsRegistered)
       setCurrentCycle(currentCycle)
-      setTotalAsko(totalAsko)
+      setTotalAsko(web3.utils.fromWei(totalAsko))
 
       setRequestWithdrawValue(accountDivis)
       setRequestReinvestValue(accountDivis)
