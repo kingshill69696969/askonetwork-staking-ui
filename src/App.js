@@ -253,7 +253,7 @@ function App() {
   }
 
   const handleRewardPoolClaim = async () => {
-    await askoStakingRewardPoolSC.methods.claim().send(currentCycle,{from:address})
+    await askoStakingRewardPoolSC.methods.claim(Number(currentCycle)-1).send({from:address})
   }
 
   const handleWithdraw = async () => {
