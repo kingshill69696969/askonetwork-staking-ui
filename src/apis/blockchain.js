@@ -47,6 +47,12 @@ export const getERC20Balance = async (tokenContract, accountAddress) => {
   return await tokenContract.methods.balanceOf(accountAddress).call();
 };
 
+export const getERC20Allowance = async (tokenContract, accountAddress) => {
+  return await tokenContract.methods
+    .allowance(accountAddress, addresses.askoStaking)
+    .call();
+};
+
 // asko lottery token functions
 export const getTokenName = async (askoLotteryTokenContract) => {
   return await askoLotteryTokenContract.methods.name().call();
@@ -145,10 +151,12 @@ export const buy = async (
   let value = web3.utils.toBN(amount).mul(tokenPrice);
   console.log('value', value.toString());
 
-  return await askoLotteryTokenContract.methods.buy(ethToWei(amount, web3)).send({
-    from: senderAddress,
-    value: value,
-  });
+  return await askoLotteryTokenContract.methods
+    .buy(ethToWei(amount, web3))
+    .send({
+      from: senderAddress,
+      value: value,
+    });
 };
 
 export const claimStakerETHRewards = async (

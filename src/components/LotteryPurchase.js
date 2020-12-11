@@ -88,6 +88,18 @@ export default function LotteryPurchase(props) {
         </NumberInput>
       </Box>
 
+      <Text
+        fontSize={{ base: '18px', sm: '21px' }}
+        textAlign='center'
+        mb='20px'
+        color='asko.fgMed'
+      >
+        You own {' '}
+        <span style={{ color: '#03C4A3' }}>
+          {props.lotteryTokenBalance.toString()} {props.tokenSymbol}
+        </span>
+      </Text>
+
       <Button
         bg='asko.accentButton'
         color='white'

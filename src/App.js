@@ -17,6 +17,7 @@ import {
   Tab,
   TabPanel,
   TabPanels,
+  Link
 } from '@chakra-ui/core';
 import theme from './theme';
 import './App.css';
@@ -119,6 +120,7 @@ function App() {
 
     lotteryTokenName: '',
     lotteryTokenSymbol: '',
+    lotteryTokenBalance: toBN('0'),
     mostRecentPresaleStartTime: toBN('0'),
     mostRecentPresaleEndTime: toBN('0'),
     tokenPrice: toBN('0'),
@@ -133,6 +135,7 @@ function App() {
     stakersETHRewards: toBN('0'),
     unclaimedETHRewards: toBN('0'),
     isStakerRegistered: false,
+    askoAllowance: toBN('0'),
 
     lotteryETHBalance: toBN('0'),
   });
@@ -225,6 +228,11 @@ function App() {
         mostRecentAskoLotteryTokenContract
       );
 
+      const lotteryTokenBalance = await blockchainApi.getERC20Balance(
+        mostRecentAskoLotteryTokenContract,
+        address
+      );
+
       const mostRecentPresaleStartTime = await blockchainApi.getLotteryPresaleStartTime(
         mostRecentAskoLotteryTokenContract
       );
@@ -288,6 +296,11 @@ function App() {
         web3
       );
 
+      const askoAllowance = await blockchainApi.getERC20Allowance(
+        mostRecentAskoLotteryTokenContract,
+        address
+      );
+
       console.log('state',
       {
         ...lotteryState,
@@ -312,6 +325,7 @@ function App() {
         unclaimedETHRewards: toBN(unclaimedETHRewards),
         isStakerRegistered,
         lotteryETHBalance: toBN(lotteryETHBalance),
+        askoAllowance: toBN(askoAllowance)
       }
       )
       setLotteryState({
@@ -322,6 +336,7 @@ function App() {
         registeredStakers,
         lotteryTokenName,
         lotteryTokenSymbol,
+        lotteryTokenBalance: toBN(lotteryTokenBalance),
         mostRecentPresaleStartTime: toBN(mostRecentPresaleStartTime),
         mostRecentPresaleEndTime: toBN(mostRecentPresaleEndTime),
         tokenPrice: toBN(tokenPrice),
@@ -337,6 +352,7 @@ function App() {
         unclaimedETHRewards: toBN(unclaimedETHRewards),
         isStakerRegistered,
         lotteryETHBalance: toBN(lotteryETHBalance),
+        askoAllowance: toBN(askoAllowance)
       });
     } catch (error) {
       console.error(error);
@@ -434,6 +450,9 @@ function App() {
     if (accountAskoWei.lt(requestStakeValueWei)) {
       alert('Your account does not have enough ASKO.');
       return;
+    }
+    if (lotteryState.askoAllowance.lt(requestStakeValueWei)) {
+      handleApprove();
     }
     await askoStakingSC.methods
       .stake(requestStakeValueWei)
@@ -701,6 +720,36 @@ function App() {
         >
           <Header web3={web3} address={address} onConnect={onConnect} />
 
+          <Box w="100%" minH="100px" bg="gray.800" color="gray.200" position="relative"  p="20px" textAlign="center" fontSize={{base:"sm", md:"md"}} >
+            <Box>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoToken}>Token SC</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoPresale}>Presale SC</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.askoStaking}>Staking SC</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://app.uniswap.org/#/swap?inputCurrency=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&outputCurrency="+addresses.askoToken}>Uniswap</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://github.com/joefilmo/askonetwork-contracts">Github</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://t.me/Askomain">Telegram</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://twitter.com/asko_official">Twitter</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://askobarnetwork.medium.com">Medium</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://discord.gg/vpV3SdZ">Discord</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://www.reddit.com/u/AskobarNetwork">Reddit</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://www.facebook.com/askonetwork/">Facebook</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://www.instagram.com/askobarnetwork/">Instagram</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://bitcointalk.org/index.php?topic=5258683">Bitcointalk</Link>
+            </Box>
+            <Box>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://dorg.tech/"}>dOrg</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://docs.google.com/document/d/1dblrWWCp2BVfG8qwJF0SYeZaC9c9WqNEWwCeyGlvrN4/edit?usp=sharing"}>Asko Litepaper</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://docs.google.com/document/d/1fS9wwntBEjZHbkSYF_D009b0BvJNjCdOfXnmx8BeyNU/edit?usp=sharing"}>AskoLend</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://github.com/AskobarNetwork/Askolend/tree/master"}>AskoLend Github</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://docs.google.com/document/d/1e--E5ILIUiZo0Wl36M15jp91NKPsWkqgv36EFkphm_8/edit?usp=sharing">AskoLottery</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href={"https://etherscan.io/address/"+addresses.lotteryFactory}>AskoLottery SC</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://docs.google.com/document/d/1jmLMq7jz1KOxxzQDdI2-qCWEeLw50g5Xh_p4mYRwNWQ/edit?usp=sharing">AskoLaunch</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://coinmarketcap.com/currencies/askobar-network/markets/">Coinmarketcap</Link>
+              <Link color="gray.600" m="5px" display="inline-block" href="https://www.coingecko.com/en/coins/asko">Coingecko</Link>
+            </Box>
+          </Box>
+
+
           <AccountStakingStats
             accountAsko={accountAsko}
             accountStake={accountStake}
@@ -758,6 +807,7 @@ function App() {
                   setRequestStakeValue={setRequestStakeValue}
                   requestStakeValue={requestStakeValue}
                   handleStake={handleStake}
+                  handleApprove={handleApprove}
                 />
               </TabPanel>
               <TabPanel h='480px'>
@@ -810,7 +860,7 @@ function App() {
             }
             tokenName={lotteryState.lotteryTokenName}
             tokenSymbol={lotteryState.lotteryTokenSymbol}
-            lotteryRound={lotteryState.lotteryTokenName}
+            lotteryRound={lotteryState.lotteryRound}
             lotteryETHBalance={fromWei(lotteryState.lotteryETHBalance)}
             tokenMaxSupply={fromWei(lotteryState.tokenMaxSupply)}
             stakersETHRewardsPercentNumerator={
@@ -853,6 +903,7 @@ function App() {
                 ? 'Presale'
                 : 'Started'
             }
+            lotteryTokenBalance={fromWei(lotteryState.lotteryTokenBalance)}
             tokenPrice={fromWei(lotteryState.tokenPrice)}
             onRegister={async () => {
               await blockchainApi.registerStaker(
