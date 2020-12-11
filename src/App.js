@@ -102,8 +102,8 @@ const web3Modal = new Web3Modal({
 function App() {
   const [address, setAddress] = useState('');
   const [provider, setProvider] = useState(
-    new Web3.providers.HttpProvider('https://ropsten.infura.io/v3/' + INFURA_ID)
-    //new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + INFURA_ID)
+    //new Web3.providers.HttpProvider('https://ropsten.infura.io/v3/' + INFURA_ID)
+    new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + INFURA_ID)
   );
   const [web3, setWeb3] = useState(new Web3(provider));
 
@@ -574,10 +574,10 @@ function App() {
         askoStakingSC.methods.stakeValue(address).call(),
         askoStakingSC.methods.dividendsOf(address).call(),
         askoTokenSC.methods.allowance(address, addresses.askoStaking).call(),
-        //askoStakingRewardPoolSC.methods.isStakerRegistered(address).call(),
-        //askoStakingRewardPoolSC.methods.getCurrentCycleCount().call(),
-        true,
-        '0',
+        askoStakingRewardPoolSC.methods.isStakerRegistered(address).call(),
+        askoStakingRewardPoolSC.methods.getCurrentCycleCount().call(),
+        //true,
+        //'0',
         askoTokenSC.methods.totalSupply().call(),
       ])
       console.log('here',[
@@ -658,23 +658,23 @@ function App() {
       setRequestWithdrawValue(accountDivis);
       setRequestReinvestValue(accountDivis);
 
-      //setPreviousCycleStakerPoolOwnership(
-      //  web3.utils.fromWei(previousCycleStakerPoolOwnership)
-      //);
-      //setCurrentCycleStakerPoolOwnership(
-      //  web3.utils.fromWei(currentCycleStakerPoolOwnership)
-      //);
-      //setNextCycleStakerPoolOwnership(
-      //  web3.utils.fromWei(nextCycleStakerPoolOwnership)
-      //);
+      setPreviousCycleStakerPoolOwnership(
+        web3.utils.fromWei(previousCycleStakerPoolOwnership)
+      );
+      setCurrentCycleStakerPoolOwnership(
+        web3.utils.fromWei(currentCycleStakerPoolOwnership)
+      );
+      setNextCycleStakerPoolOwnership(
+        web3.utils.fromWei(nextCycleStakerPoolOwnership)
+      );
 
-      //setPreviousCyclePoolTotal(web3.utils.fromWei(previousCyclePoolTotal));
-      //setCurrentCyclePoolTotal(web3.utils.fromWei(currentCyclePoolTotal));
-      //setNextCyclePoolTotal(web3.utils.fromWei(nextCyclePoolTotal));
+      setPreviousCyclePoolTotal(web3.utils.fromWei(previousCyclePoolTotal));
+      setCurrentCyclePoolTotal(web3.utils.fromWei(currentCyclePoolTotal));
+      setNextCyclePoolTotal(web3.utils.fromWei(nextCyclePoolTotal));
 
-      //setPreviousCyclePayout(web3.utils.fromWei(previousCyclePayout));
-      //setCurrentCyclePayout(web3.utils.fromWei(currentCyclePayout));
-      //setNextCyclePayout(web3.utils.fromWei(nextCyclePayout));
+      setPreviousCyclePayout(web3.utils.fromWei(previousCyclePayout));
+      setCurrentCyclePayout(web3.utils.fromWei(currentCyclePayout));
+      setNextCyclePayout(web3.utils.fromWei(nextCyclePayout));
     };
 
     fetchData(
